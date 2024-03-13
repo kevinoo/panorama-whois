@@ -8,6 +8,9 @@ use JetBrains\PhpStorm\ArrayShape;
 
 class Helpers
 {
+    /**
+     * Used to construct database SQLite connection
+    */
     public static function boot(): void
     {
         $capsule = new DB();
