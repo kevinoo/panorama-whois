@@ -10,6 +10,7 @@ class Helpers
 {
     /**
      * Used to construct database SQLite connection
+     * @return void
     */
     public static function boot(): void
     {
