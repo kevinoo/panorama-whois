@@ -136,11 +136,11 @@ class IPLookup
                             $result[$info_key] = [$result[$info_key]];
                         }
                         $result[$info_key][] = $value;
-                    }else{
+                    } else {
                         $result[$info_key] = $value;
                     }
 
-                }else{
+                } else {
                     $result[] = $row;
                 }
 

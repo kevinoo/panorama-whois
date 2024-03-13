@@ -47,7 +47,7 @@ class Helpers
 
         if( count(explode('.',$website)) === 2 ){
             $tld = explode('.',$website)[1];
-        }else{
+        } else {
             $tld = DB::selectOne("
             SELECT tld FROM tlds WHERE '$website' LIKE '%.'||tld ORDER BY INSTR('.'||tld,'$website')
         ")?->tld ?? null;

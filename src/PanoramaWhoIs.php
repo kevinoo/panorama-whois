@@ -163,7 +163,7 @@ class PanoramaWhoIs
 
             }else if( $previous_key !== null ){
                 $arr = [$previous_key,$line];
-            }else{
+            } else {
                 $arr = [$line,''];
             }
 
@@ -281,7 +281,7 @@ class PanoramaWhoIs
                 if( !in_array($value,$who_is_info[$info_key],true) ){
                     $who_is_info[$info_key][] = $value;
                 }
-            }else{
+            } else {
                 $who_is_info[$info_key] = $value;
             }
         }
@@ -444,7 +444,7 @@ class PanoramaWhoIs
             $dns_list = $who_is_info['nameservers'];
         }elseif( !empty($who_is_info['name_server']) ){
             $dns_list = $who_is_info['name_server'];
-        }else{
+        } else {
             // Unknown format :-D
             return [];
         }
@@ -453,7 +453,7 @@ class PanoramaWhoIs
             $dns_list = [$dns_list => $dns_list];
         }elseif( is_array($dns_list) ){
             $dns_list = array_combine($dns_list,$dns_list);
-        }else{
+        } else {
             // Unknown format :-D
             return [];
         }
