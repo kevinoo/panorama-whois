@@ -36,7 +36,7 @@ class Helpers
         $website = str_replace('www.','', $matches[1]);
 
         // The website and domain are the same: they are an IP
-        if( filter_var($website,FILTER_VALIDATE_IP) ){
+        if( filter_var($website,FILTER_VALIDATE_IP) === true ){
             return [
                 'website' => $website,
                 'domain' => $website,
@@ -78,10 +78,10 @@ class Helpers
     public static function retriveCountryByAddressIP( string $ip_address ): ?string
     {
         $row = DB::select("
-        SELECT country_code
-            FROM ip_ranges_by_countries
-            WHERE :ip BETWEEN ip_from AND ip_to
-    ",[':ip'=>ip2long($ip_address)])[0] ?? [];
+            SELECT country_code
+                FROM ip_ranges_by_countries
+                WHERE :ip BETWEEN ip_from AND ip_to
+        ",[':ip'=>ip2long($ip_address)])[0] ?? [];
 
         if( !empty($row) ){
             return static::getCountryISO3($row->country_code);
