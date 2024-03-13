@@ -5,6 +5,23 @@
     "description": "PanoramaWhois API is a powerful and versatile tool for retrieving Whois data from multiple sources in a single, comprehensive lookup. This API provides users with an extensive panorama of domain or IP information, aggregated through a cascade of checks across various Whois servers.",
     "keywords": ["panorama","whois","tool","lookup","domain","ip","servers"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Kevin Lucich",
+            "email": "info@lucichkevin.it",
+            "homepage": "https://www.lucichkevin.it",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "info@lucichkevin.it"
+    },
+    "funding": [
+        {
+            "type": "paypal",
+            "url": "https://www.paypal.com/paypalme/kevinlucich"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "laravel/framework": "^10",
@@ -19,7 +36,7 @@
             "kevinoo\\PanoramaWhois\\": "src"
         },
         "files": [
-            "src/helpers.php"
+            "src/bootstrap.php"
         ]
     },
     "autoload-dev": {

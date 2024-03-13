@@ -22,7 +22,7 @@ class PanoramaWhoIs
 //            $cached = request()?->header('x-cached','true') === 'true';
 //        }
 
-        $domain_name_info = getUrlInfo($domain_name);
+        $domain_name_info = Helpers::getUrlInfo($domain_name);
 //        $website = $domain_name_info['website'];
 //        $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
 
@@ -46,7 +46,7 @@ class PanoramaWhoIs
 
             $whois = new \phpWhois\Whois();
             $whois->deepWhois = true;
-            $who_is_result = $whois->lookup(idn_to_utf8_prevent_lowercase($domain_name));
+            $who_is_result = $whois->lookup(Helpers::idn_to_utf8_prevent_lowercase($domain_name));
 
             // proprietario - persona fisica o azienda che ha comprato il dominio
             $propriety_info = $who_is_result['regrinfo'] ?? [];
@@ -637,7 +637,7 @@ class PanoramaWhoIs
 
         if( empty($technical_info['country']) && !empty($domain_data['ip']) ){
             foreach( $domain_data['ip'] as $ip_address ){
-                $technical_info['country'] = retriveCountryByAddressIP($ip_address);
+                $technical_info['country'] = Helpers::retriveCountryByAddressIP($ip_address);
                 if( !empty($technical_info['country']) ){
                     break;
                 }
@@ -755,7 +755,7 @@ class PanoramaWhoIs
 
         if( strlen($country_code) === 2 ){
             // Old iso code style
-            return getCountryISO3($country_code);
+            return Helpers::getCountryISO3($country_code);
         }
 
         // Search code (iso3) by the country's name

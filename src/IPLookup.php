@@ -69,7 +69,7 @@ class IPLookup
         }
 
         if( empty($data['country']) ){
-            $data['country'] = retriveCountryByAddressIP($ip_address);
+            $data['country'] = Helpers::retriveCountryByAddressIP($ip_address);
         }
 
         return ['ip' => $ip_address, 'whois_server' => $whois_server] + $data;
