@@ -429,7 +429,6 @@ class PanoramaWhoIs
         unset(
             $registrar_info['servers'],
             $registrar_info['registrar'],
-            $registrar_info['registrar'],
             $registrar_info['sponsor'],
         );
 
