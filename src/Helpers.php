@@ -16,12 +16,19 @@ class Helpers
     {
         $capsule = new DB();
         $capsule->addConnection([
-            "driver" => "sqlite",
-            "host" => '../src/database/panorama-whois.sqlite',
-            "database" => '../src/database/panorama-whois.sqlite',
-            "username" => "root",
-            "password" => "",
+            'driver' => 'sqlite',
+            'host' => __DIR__ .'/database/panorama-whois.sqlite',
+            'database' => __DIR__ .'/database/panorama-whois.sqlite',
         ]);
+
+        $capsule->addConnection([
+            'driver' => env('PANORAMA_WHOIS_CACHE_DB_CONNECTION','sqlite'),
+            'host' => env('PANORAMA_WHOIS_CACHE_DB_HOST',__DIR__ .'/database/cached-whois.sqlite'),
+            'database' => env('PANORAMA_WHOIS_CACHE_DB_DATABASE',__DIR__ .'/database/cached-whois.sqlite'),
+            'username' => env('PANORAMA_WHOIS_CACHE_DB_USERNAME'),
+            'password' => env('PANORAMA_WHOIS_CACHE_DB_PASSWORD'),
+        ],'cached');
+
         $capsule->setAsGlobal();
         $capsule->bootEloquent();
     }
