@@ -29,6 +29,7 @@
         "kevinoo/phpwhois": "^v6"
     },
     "require-dev": {
+        "phpunit/phpunit": "^10.5",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {
