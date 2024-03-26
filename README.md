@@ -1,10 +1,15 @@
-# PanoramaWhois API
-PanoramaWhois API is a powerful and versatile tool for retrieving Whois data from multiple sources in a single, comprehensive lookup. This API provides users with an extensive panorama of domain or IP information, aggregated through a cascade of checks across various Whois servers.
+# PanoramaWhois 
+PanoramaWhois is a powerful and versatile tool for retrieving Whois data from multiple sources in a single, comprehensive lookup. This API provides users with an extensive panorama of domain or IP information, aggregated through a cascade of checks across various Whois servers.
 
 ## Features
 - **Multi-Source Lookup:** Obtain Whois data from diverse servers to ensure a thorough and accurate analysis.
 - **Comprehensive Information:** Access detailed information about domains or IPs, combining results for a holistic view.
 - **Easy Integration:** Seamless integration into your applications or services, making it convenient for developers to harness the power of PanoramaWhois.
+
+## Installation
+```shell
+composer require kevinoo/panorama-whois
+```
 
 ## Usage
 
@@ -147,10 +152,10 @@ PanoramaWhoIs::getWhoIS( 'facebook.com' );
 ```
 
 ## Getting Started
-To get started with PanoramaWhois API, visit [Documentation Link] for detailed instructions on integration, usage, and customization.
+To get started with PanoramaWhois, [visit "Usage" section](?tab=readme-ov-file#usage) for detailed instructions on integration, usage, and customization.
 
 ## Contributing
-We welcome contributions! Feel free to submit bug reports, feature requests, or pull requests to help improve PanoramaWhois API.
+We welcome contributions! Feel free to submit bug reports, feature requests, or pull requests to help improve PanoramaWhois.
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
