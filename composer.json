@@ -55,10 +55,7 @@
         "laravel": {
             "providers": [
                 "kevinoo\\PanoramaWhois\\PanoramaWhoisServiceProvider"
-            ],
-            "aliases": {
-                "PanoramaWhois": "kevinoo\\PanoramaWhois\\Support\\Facades\\PanoramaWhois"
-            }
+            ]
         }
     },
     "config": {
