@@ -1,7 +1,7 @@
 {
     "name": "kevinoo/panorama-whois",
-    "version": "0.3.2",
-    "type": "project",
+    "version": "0.3.3",
+    "type": "library",
     "description": "PanoramaWhois API is a powerful and versatile tool for retrieving Whois data from multiple sources in a single, comprehensive lookup. This API provides users with an extensive panorama of domain or IP information, aggregated through a cascade of checks across various Whois servers.",
     "keywords": ["panorama","whois","tool","lookup","domain","ip","servers"],
     "license": "MIT",
@@ -42,12 +42,16 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "kevinoo\\PanoramaWhois\\Tests\\": "tests/"
         }
     },
     "scripts": {
+        "tests": "phpunit --colors=always --verbose"
     },
     "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.0-dev"
+        },
         "laravel": {
             "providers": [
                 "kevinoo\\PanoramaWhois\\PanoramaWhoisServiceProvider"

@@ -36,6 +36,7 @@ class PanoramaWhoisServiceProvider extends ServiceProvider
             $config = $app->make(Repository::class);
             return new PanoramaWhoIs($app, $config);
         });
+        $this->app->tag(PanoramaWhoIs::class, 'panorama-whois');
         $this->app->alias(PanoramaWhoIs::class, 'PanoramaWhoIs');
     }
 }
