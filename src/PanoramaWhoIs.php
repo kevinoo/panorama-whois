@@ -335,7 +335,7 @@ class PanoramaWhoIs
         $domain_status = array_unique(array_filter($raw_status));
         sort($domain_status);
         return array_filter(explode(' ',
-            trim(str_replace('  ',' ', mb_ereg_replace('https?:\/\/(www\.)?icann\.org\/epp#[a-zA-Z]+','',implode(' ',$domain_status))))
+            trim(str_replace([' https','  '],' ', mb_ereg_replace('https?:\/\/(www\.)?icann\.org\/epp#[a-zA-Z]+','',implode(' ',$domain_status))))
         ));
     }
 
