@@ -27,6 +27,21 @@ use \kevinoo\PanoramaWhois\PanoramaWhoIs;
 PanoramaWhoIs::getWhoIS( 'facebook.com' );
 ```
 
+**Custom provider (Optional)**
+To add a custom provider, add this line in your `AppServiceProvider::boot()` method
+```php
+class AppServiceProvider extends ServiceProvider
+{
+    // ...
+    public function boot(): void
+    {
+        // ...
+        PanoramaWhoIs::addProvider(CustomProviderClass::class)
+    }
+}
+
+```
+
 **Returns:**
 ```json
 {

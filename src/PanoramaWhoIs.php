@@ -14,11 +14,40 @@ use kevinoo\PanoramaWhois\Providers\WhoIsCom;
 
 class PanoramaWhoIs
 {
-    public const PROVIDERS = [
-        WhoIsCom::class,
-        PhpWhoisLibrary::class,
-        GARRServices::class,
-    ];
+    public static array $PROVIDERS = [];
+
+    /**
+     * Returns the list of default providers to call
+     * @return AbstractProvider[]
+    */
+    public static function defaultProviders(): array
+    {
+        return [
+            WhoIsCom::class,
+            PhpWhoisLibrary::class,
+            GARRServices::class,
+        ];
+    }
+
+    protected static function boot(): static
+    {
+        if( empty(static::$PROVIDERS) ){
+            static::$PROVIDERS = static::defaultProviders();
+        }
+        return new static;
+    }
+
+    public static function setProviders( array $providers ): static
+    {
+        static::$PROVIDERS = $providers;
+        return new static;
+    }
+
+    public static function addProvider( AbstractProvider $provider ): static
+    {
+        static::$PROVIDERS[] = $provider;
+        return new static;
+    }
 
     /**
      * Return the WhoIs info
@@ -28,6 +57,8 @@ class PanoramaWhoIs
      */
     public static function getWhoIS( string $domain_name ): array
     {
+        static::boot();
+
 //        if( is_null($cached) ){
 //            $cached = request()?->header('x-cached','true') === 'true';
 //        }
@@ -42,7 +73,7 @@ class PanoramaWhoIs
 
         $who_is_info = [];
         /** @var $provider AbstractProvider */
-        foreach( static::PROVIDERS as $provider ){
+        foreach( static::$PROVIDERS as $provider ){
 
             $who_is_info = $provider::getWhoIS($domain_name_info);
 
