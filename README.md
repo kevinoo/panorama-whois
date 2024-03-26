@@ -7,8 +7,20 @@ PanoramaWhois is a powerful and versatile tool for retrieving Whois data from mu
 - **Easy Integration:** Seamless integration into your applications or services, making it convenient for developers to harness the power of PanoramaWhois.
 
 ## Installation
-```shell
+Require the package via Composer:
+```bash
 composer require kevinoo/panorama-whois
+```
+### Laravel
+
+Publish the configuration file:
+```bash
+php artisan vendor:publish --provider="kevinoo\PanoramaWhois\PanoramaWhoisServiceProvider.php"
+```
+
+Review the configuration file:
+```
+config/panorama-whois.php
 ```
 
 ## Usage

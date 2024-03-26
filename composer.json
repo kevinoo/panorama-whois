@@ -48,6 +48,14 @@
     "scripts": {
     },
     "extra": {
+        "laravel": {
+            "providers": [
+                "kevinoo\\PanoramaWhois\\PanoramaWhoisServiceProvider"
+            ],
+            "aliases": {
+                "PanoramaWhois": "kevinoo\\PanoramaWhois\\Support\\Facades\\PanoramaWhois"
+            }
+        }
     },
     "config": {
         "optimize-autoloader": true,
