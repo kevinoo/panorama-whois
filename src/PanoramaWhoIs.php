@@ -6,10 +6,20 @@ use Exception;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Database\Capsule\Manager as DB;
+use kevinoo\PanoramaWhois\Providers\AbstractProvider;
+use kevinoo\PanoramaWhois\Providers\GARRServices;
+use kevinoo\PanoramaWhois\Providers\PhpWhoisLibrary;
+use kevinoo\PanoramaWhois\Providers\WhoIsCom;
 
 
 class PanoramaWhoIs
 {
+    public const PROVIDERS = [
+        WhoIsCom::class,
+        PhpWhoisLibrary::class,
+        GARRServices::class,
+    ];
+
     /**
      * Return the WhoIs info
      * @param string    $domain_name
@@ -30,50 +40,28 @@ class PanoramaWhoIs
 //            return $who_is_data;
 //        }
 
-        $propriety_info = [];
-        // registrar - con chi è stato registrato (Aruba, TopHost, ecc...)
-        $registrar_info = [];
-        $domain_info = [];
-        $registrant_info = [];
-        $admin_info = [];
-        $technical_info = [];
+        $who_is_info = [];
+        /** @var $provider AbstractProvider */
+        foreach( static::PROVIDERS as $provider ){
 
-        // Too little data in the text, I try with other WHOIS
-        $who_is_info = static::getWhoIsFromWhoIsCom($domain_name_info);
+            $who_is_info = $provider::getWhoIS($domain_name_info);
 
-        // Too little data, I try with other WHOIS
-        if( count($who_is_info) < 15 ){
-
-            $whois = new \phpWhois\Whois();
-            $whois->deepWhois = true;
-            $who_is_result = $whois->lookup(Helpers::idn_to_utf8_prevent_lowercase($domain_name));
-
-            // proprietario - persona fisica o azienda che ha comprato il dominio
-            $propriety_info = $who_is_result['regrinfo'] ?? [];
-            // registrar - con chi è stato registrato (Aruba, TopHost, ecc...)
-            $registrar_info = $who_is_result['regyinfo'] ?? [];
-            $domain_info = $propriety_info['domain'] ?? [];
-            $registrant_info = $propriety_info['owner'] ?? [];
-            $admin_info = $propriety_info['admin'] ?? [];
-            $technical_info = $propriety_info['tech'] ?? [];
-            $who_is_info = static::handleWhoIsText( (array) ($who_is_result['rawdata'] ?? []), $domain_name_info['tld'] );
-
-            // Too little data, I try with other WHOIS
-            if( count($who_is_info) < 15 ){
-                $who_is_info = static::getWhoIsFromGARRServices($domain_name_info);
+            // A minimum of 15 keys are needed to say the response is valid
+            if( count($who_is_info) > 14 ){
+                break;
             }
         }
 
-        $domain_data = static::handleDomainInfo($domain_info,$who_is_info,$propriety_info);
+        $domain_data = static::handleDomainInfo($who_is_info);
 
         /** @noinspection PhpUnhandledExceptionInspection */
         $who_is_data = [
             'last_update' => (new DateTime('now',new DateTimeZone('UTC')))->format('c'), // 2022-09-21T09:44:43+00:00
-            'registrar' => static::handleRegistrarInfo($registrar_info,$who_is_info),
+            'registrar' => static::handleRegistrarInfo($who_is_info),
             'domain' => $domain_data,
-            'registrant' => static::handleRegistrantInfo($registrant_info,$who_is_info),
-            'admin' => static::handleAdminInfo($admin_info,$who_is_info),
-            'technical' => static::handleTechnicalInfo($technical_info,$who_is_info,$domain_data),
+            'registrant' => static::handleRegistrantInfo($who_is_info),
+            'admin' => static::handleAdminInfo($who_is_info),
+            'technical' => static::handleTechnicalInfo($who_is_info,$domain_data),
         ];
 
 //        Domain::updateOrCreate([
@@ -83,220 +71,6 @@ class PanoramaWhoIs
 //        ]);
 
         return $who_is_data;
-    }
-
-    /**
-     * https://www.whois.com/
-     */
-    protected static function getWhoIsFromWhoIsCom( array $domain_name_info ): array
-    {
-        $ch = curl_init();
-        curl_setopt_array($ch,[
-            CURLOPT_URL => 'https://www.whois.com/whois/'. $domain_name_info['domain'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 90,
-        ]);
-        preg_match( '/<pre class="df-raw" id="\w+">(?<whois_raw>.*)<\/pre>/s', curl_exec($ch), $matches );
-        curl_close($ch);
-
-        if( empty($matches['whois_raw']) ){
-            return [];
-        }
-
-        return static::handleWhoIsText(
-            raw_data_text: explode("\n",str_replace("\r",'',$matches['whois_raw'])),
-            tld: $domain_name_info['tld'],
-            whois_domain: 'https://www.whois.com/'
-        );
-    }
-
-    /**
-     * https://www.servizi.garr.it/
-    */
-    protected static function getWhoIsFromGARRServices( $domain_name_info ): array
-    {
-        $ch = curl_init();
-        curl_setopt_array($ch,[
-            CURLOPT_URL => 'https://www.servizi.garr.it/code-s/whois.php',
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => [
-                'net' => $domain_name_info['domain'],
-            ],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 90,
-        ]);
-        curl_close($ch);
-
-        $whois_raw = explode('<tr>',substr(curl_exec($ch),stripos(curl_exec($ch),'<td>domain')));
-        unset($whois_raw[0]);
-
-        foreach( $whois_raw as &$row ){
-            $row = trim(strip_tags($row));
-        }
-        unset($row);
-
-        return static::handleWhoIsText($whois_raw,$domain_name_info['tld']);
-    }
-
-    /**
-     * Using who_is response split into an array, extract all info available
-     * @param array  $raw_data_text
-     * @param string $tld
-     * @param string $whois_domain
-     * @return array
-     */
-    protected static function handleWhoIsText( array $raw_data_text, string $tld, string $whois_domain='' ): array
-    {
-        $isLineToSkip = static function( $line ){
-            return empty($line) || str_starts_with($line,'*') || str_starts_with($line,'>>>') || str_starts_with($line,'%%') || str_starts_with($line,'NOTICE: ') || str_starts_with($line,'TERMS OF USE: ');
-        };
-        $getKeyValueByLine = static function( $line, &$previous_key ) use ($tld){
-
-            if(
-                // TODO: use a "Handler" to check "when there a new line of the WhoIS"
-                /* For other TLD */  (($tld !== 'pl') && str_contains($line,':')) ||
-                /* Check only for PL domains */(($tld === 'pl') && (substr_count($line,':')===1 || str_starts_with($line,'created:') || str_starts_with($line,'last modified:') || (str_contains($line,'nameservers:') && str_contains($line,'dns.pl.'))))
-            ){
-                $arr = explode(':', $line, 2);
-                // Reset the $previous_key (section)
-                $previous_key = null;
-
-            }else if( $previous_key !== null ){
-                $arr = [$previous_key,$line];
-            } else {
-                $arr = [$line,''];
-            }
-
-            return [
-                strtolower(trim($arr[0])), // key
-                trim($arr[1]), // value
-            ];
-        };
-
-        $section = '';
-        $who_is_info = [];
-        $previous_key = null;
-        $is_nic_section = false;    // Used for FR domains :-(
-
-        $whois_section_names = [
-            // Example in WhoIS text:
-            // holder-c: CCDS71-FRNIC
-            // admin-c: CCED209-FRNIC
-            // tech-c: OVH5-FRNIC
-
-            // This will be in the "admin" section
-//            nic-hdl: CCED209-FRNIC
-//            type: ORGANIZATION
-//            ...
-
-            // This will be in the "holder" section
-//            nic-hdl: CCDS71-FRNIC
-//            type: ORGANIZATION
-//            ...
-
-            //  'holder' => 'CCDS71-FRNIC',
-            //  'admin' => 'CCED209-FRNIC',
-            //  'tech' => 'OVH5-FRNIC',
-            //  other...? Maybe... :-)
-        ];
-
-        // Retrieve "$whois_section_names" by "NIC Handle" ("nic-hdl" key), used by ".fr" domains
-        foreach( $raw_data_text as $line ){
-
-            if( $isLineToSkip($line) ){
-                continue;
-            }
-
-            [$key,$value] = $getKeyValueByLine($line,$previous_key);
-
-            if( str_ends_with($key,'-c') ){
-                // holder-c | admin-c | tech-c | zone-c
-                $key_name = substr($key,0,-2);
-                if( empty($whois_section_names[$key_name]) ){
-                    $whois_section_names[$key_name] = $value;
-                }
-            }
-        }
-
-        // Retrive all info parsing all rows in $raw_data_text
-        foreach( $raw_data_text as $line ){
-            $line = trim(str_replace(['&gt;','&lt;'],'',$line));
-
-            if( $line === "" ){
-                // New section info
-                $section = '';
-                $is_nic_section = false;
-            }
-
-            if( $isLineToSkip($line) ){
-                continue;
-            }
-
-            $lower_line = strtolower($line);
-
-            if( $section === 'technical ' && str_starts_with($lower_line,'nserver:') ){
-                // Case for WhoIS "servizi.garr.it"
-                $section = '';
-                $previous_key = $lower_line;
-            }else if( !$is_nic_section && (($start_with_contact = str_starts_with($lower_line,'contact:')) || in_array($lower_line,['registrant','admin contact','technical contacts','registrar','nameservers'])) ){
-                $section = ($start_with_contact ? trim(str_replace('contact:','',$lower_line)) : $lower_line) .' ';
-                $previous_key = $lower_line === 'nameservers' ? $lower_line : null; // Caso particolare
-                continue;
-            }
-
-            [$key,$value] = $getKeyValueByLine($line,$previous_key);
-
-            if(
-                str_starts_with($value,'Please query') || str_starts_with($value,'Whois protection') ||
-                in_array(strtolower($value),['redacted for privacy','data protected','expired expired','redacted'],true)
-            ){
-                continue;
-            }
-
-            if( str_starts_with($value,'<img src') ){
-                preg_match('/<img src="(?<image_path>\/eimg\/[\w\/]+\/(?<image_hash>\w+)\.png)"[ \w="]+>(?<email>@[\w.-]+)/',$value,$matches);
-//                $value = static::parseImageContent($whois_domain.trim($matches['image_path'],'/')) . $matches['email'];
-                $value = '['. $whois_domain.trim($matches['image_path'],'/') .']' . $matches['email'];
-            }
-
-            // Restore the correct section when in the WhoIS response used the "nic-hdl" header section
-            // ITA: a volte nella risposta non vengono divise le sezioni con delle parole, ma viene usata la chiave "nic-hdl"
-            // per determinare che cosa indica quella sezione di testo. Usata spesso dai (maledetti) registri francesi.
-            if( $key === 'nic-hdl' ){
-                $is_nic_section = true;
-                $section = (array_search($value,$whois_section_names,true) ?: $value) .'_';
-                $key = 'code';
-            }
-
-            if( $previous_key === null && str_contains($line, ':') ){
-                $previous_key = $key;
-            }
-
-            $info_key = str_replace(' ', '_', (($previous_key === 'nameservers') ? $previous_key : $section . $key) );
-
-            if( isset($who_is_info[$info_key]) && ($who_is_info[$info_key] !== $value) ){
-                if( !is_array($who_is_info[$info_key]) ){
-                    $who_is_info[$info_key] = [$who_is_info[$info_key]];
-                }
-                if( !in_array($value,$who_is_info[$info_key],true) ){
-                    $who_is_info[$info_key][] = $value;
-                }
-            } else {
-                $who_is_info[$info_key] = $value;
-            }
-        }
-
-        unset(
-            $who_is_info['url_of_the_icann_whois_inaccuracy_complaint_form'],
-            $who_is_info['for_more_information_on_whois_status_codes,_please_visit_https'],
-            $who_is_info['notice'],
-            $who_is_info['terms_of_use'],
-            $who_is_info['by_the_following_terms_of_use'],
-            $who_is_info['to'],
-            $who_is_info['https'],
-        );
-
-        return $who_is_info;
     }
 
     protected static function parseImageContent( $image_path ): string
@@ -354,8 +128,9 @@ class PanoramaWhoIs
         "))->name ?? null;
     }
 
-    protected static function retrieveInfoFromRawWhoIs( array $info, array $who_is_info, array $map_info_keys ): array
+    protected static function retrieveInfoFromRawWhoIs( array $who_is_info, array $map_info_keys ): array
     {
+        $info = [];
         foreach( $map_info_keys as $map_key => $raw_who_is_keys ){
 
             if( !empty($info[$map_key]) ){
@@ -376,10 +151,9 @@ class PanoramaWhoIs
     }
 
     /** @noinspection SuspiciousAssignmentsInspection */
-    protected static function handleRegistrarInfo(array $registrar_info, array $who_is_info ): array {
+    protected static function handleRegistrarInfo( array $who_is_info ): array {
 
         $registrar_info = static::retrieveInfoFromRawWhoIs(
-            $registrar_info,
             $who_is_info,
             [
                 'code' => ['registrar_iana_id','sponsoring_registrar_iana_id'], // $reg_iana_id
@@ -470,17 +244,16 @@ class PanoramaWhoIs
         return $list;
     }
 
-    protected static function handleDomainInfo( array $domain_info, array $who_is_info, array $propriety_info=[] ): array
+    protected static function handleDomainInfo( array $who_is_info ): array
     {
-        if( !empty($domain_info['handle']) ){
-            $domain_info['code'] = $domain_info['handle'];
-        }
+//        if( !empty($domain_info['handle']) ){
+//            $domain_info['code'] = $domain_info['handle'];
+//        }
 
         $domain_info = static::retrieveInfoFromRawWhoIs(
-            $domain_info,
             $who_is_info,
             [
-                'code' => [],
+                'code' => ['domain_handle'],
                 'ip' => [],
                 'name' => ['domain'],
                 'is_registered' => [],
@@ -507,29 +280,27 @@ class PanoramaWhoIs
 
         $domain_info['dns'] = static::getDNSList($who_is_info);
 
-        // We need it?
         $domain_info['status'] = static::getDomainStatus([
             isset($domain_info['status']) ? implode(' ', (array) $domain_info['status']) : '',
-            $propriety_info['status'] ?? '',
             is_array($who_is_info['domain_status'] ?? '') ? implode(' ',$who_is_info['domain_status']) : '',
             is_string($who_is_info['domain_status'] ?? []) ? $who_is_info['domain_status'] : '',
         ]);
 
-        $domain_info['is_registered'] = (!empty($propriety_info['registered']) && $propriety_info['registered'] === 'yes') || !empty($domain_info['status']) || (!empty($domain_info['eppstatus']) && $domain_info['eppstatus']==='active');
+        $domain_info['is_registered'] = !empty($domain_info['status']) || (!empty($domain_info['eppstatus']) && $domain_info['eppstatus']==='active');
 
         // TODO: check if dates must be formatted?
 
         return static::cleaningDataStructure($domain_info);
     }
 
-    protected static function handleRegistrantInfo( array $registrant_info, array $who_is_info ): array
+    protected static function handleRegistrantInfo( array $who_is_info ): array
     {
-        $registrant_info['code'] = $registrant_info['handle'] ?? $who_is_info['registrant_id'] ?? null;
+//        $registrant_info['code'] = $registrant_info['handle'] ?? $who_is_info['registrant_id'] ?? null;
 
         $registrant_info = static::retrieveInfoFromRawWhoIs(
-            $registrant_info,
             $who_is_info,
             [
+                'code' => ['registrant_id'],
                 'name' => ['registrant_name','registrant','holder_code'], // $rgnt_name
                 'address' => ['registrant_street','registrant_address','holder_address'], // $rgnt_street
                 'city' => ['registrant_city'],  // $rgnt_city
@@ -562,11 +333,10 @@ class PanoramaWhoIs
         return static::cleaningDataStructure($registrant_info);
     }
 
-    protected static function handleAdminInfo( array $admin_info, array $who_is_info ): array
+    protected static function handleAdminInfo( array $who_is_info ): array
     {
         // Collapse address info
         $admin_info = static::retrieveInfoFromRawWhoIs(
-            $admin_info,
             $who_is_info,
             [
                 'code' => ['registry_admin_id','admin_id','admin_handle','administrative_contact_id','admin_code'],
@@ -603,11 +373,10 @@ class PanoramaWhoIs
         return static::cleaningDataStructure($admin_info);
     }
 
-    protected static function handleTechnicalInfo( array $technical_info, array $who_is_info, array $domain_data ): array
+    protected static function handleTechnicalInfo( array $who_is_info, array $domain_data ): array
     {
         // Collapse address info
         $technical_info = static::retrieveInfoFromRawWhoIs(
-            $technical_info,
             $who_is_info,
             [
                 'code' => ['tech_code'],
