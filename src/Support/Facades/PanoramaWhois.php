@@ -3,7 +3,7 @@
 namespace kevinoo\PanoramaWhois\Support\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use kevinoo\PanoramaWhois\PanoramaWhoIs as RealPanoramaWhoIs;
+use kevinoo\PanoramaWhois\PanoramaWhois as RealPanoramaWhois;
 use kevinoo\PanoramaWhois\Providers\AbstractProvider;
 
 
@@ -13,7 +13,7 @@ use kevinoo\PanoramaWhois\Providers\AbstractProvider;
  * @method static array setProviders( array $providers )
  * @method static array getWhoIS( string $domain_name, bool $cached )
  */
-class PanoramaWhoIs extends Facade
+class PanoramaWhois extends Facade
 {
     /**
      * Get the registered name of the component.
@@ -22,6 +22,6 @@ class PanoramaWhoIs extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return RealPanoramaWhoIs::class;
+        return RealPanoramaWhois::class;
     }
 }

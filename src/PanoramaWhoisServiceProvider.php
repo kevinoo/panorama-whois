@@ -27,16 +27,16 @@ class PanoramaWhoisServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->registerPanoramaWhoIs();
+        $this->registerPanoramaWhois();
     }
 
-    public function registerPanoramaWhoIs(): void
+    public function registerPanoramaWhois(): void
     {
-        $this->app->singleton(PanoramaWhoIs::class, function(Container $app): PanoramaWhoIs {
+        $this->app->singleton(PanoramaWhois::class, function(Container $app): PanoramaWhois {
             $config = $app->make(Repository::class);
-            return new PanoramaWhoIs($app, $config);
+            return new PanoramaWhois($app, $config);
         });
-        $this->app->tag(PanoramaWhoIs::class, 'panorama-whois');
-        $this->app->alias(PanoramaWhoIs::class, 'PanoramaWhoIs');
+        $this->app->tag(PanoramaWhois::class, 'panorama-whois');
+        $this->app->alias(PanoramaWhois::class, 'PanoramaWhois');
     }
 }

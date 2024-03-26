@@ -27,16 +27,16 @@ config/panorama-whois.php
 
 **Request Format:**
 ```php
-use \kevinoo\PanoramaWhois\PanoramaWhoIs;
+use \kevinoo\PanoramaWhois\PanoramaWhois;
 // ...
-PanoramaWhoIs::getWhoIS( domain_name );
+PanoramaWhois::getWhoIS( domain_name );
 ```
 
 **Example:**
 ```php
-use \kevinoo\PanoramaWhois\PanoramaWhoIs;
+use \kevinoo\PanoramaWhois\PanoramaWhois;
 // ...
-PanoramaWhoIs::getWhoIS( 'facebook.com' );
+PanoramaWhois::getWhoIS( 'facebook.com' );
 ```
 
 **Custom provider (Optional)**
@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // ...
-        PanoramaWhoIs::addProvider(CustomProviderClass::class)
+        PanoramaWhois::addProvider(CustomProviderClass::class)
     }
 }
 

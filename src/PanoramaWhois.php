@@ -12,7 +12,7 @@ use kevinoo\PanoramaWhois\Providers\PhpWhoisLibrary;
 use kevinoo\PanoramaWhois\Providers\WhoIsCom;
 
 
-class PanoramaWhoIs
+class PanoramaWhois
 {
     public static array $PROVIDERS = [];
 
