@@ -15,8 +15,6 @@ class PhpWhoisLibrary extends AbstractProvider
         $whois->deepWhois = true;
         $who_is_result = $whois->lookup(Helpers::idn_to_utf8_prevent_lowercase($domain_name_info['domain']));
 
-        dump($who_is_result['rawdata']);
-
         return static::handleWhoIsText( (array) ($who_is_result['rawdata'] ?? []), $domain_name_info['tld'] );
     }
 }
