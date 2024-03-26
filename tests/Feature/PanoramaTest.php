@@ -1,8 +1,9 @@
 <?php
 
-namespace kevinoo\PanoramaWhois\Tests\Feature;
+namespace Tests\Feature;
 
 use Exception;
+use kevinoo\PanoramaWhois\Helpers;
 use kevinoo\PanoramaWhois\PanoramaWhois;
 use Tests\TestCase;
 
@@ -29,10 +30,22 @@ class PanoramaTest extends TestCase
     /**
      * @throws Exception
      */
+    public function test_countries(): void
+    {
+        static::assertEquals('ITA', Helpers::getCountryISO3('IT') );
+        static::assertEquals('USA', Helpers::getCountryISO3('US') );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function test_config(): void
     {
-        $whois = PanoramaWhois::defaultProviders();
+        // $whois = PanoramaWhois::defaultProviders();
 
+        dd(
+            app('config')
+        );
     }
 
     /**
@@ -42,6 +55,6 @@ class PanoramaTest extends TestCase
     {
         $whois = PanoramaWhois::getWhoIS('facebook.com');
         $whois_cached = PanoramaWhois::getWhoIS('facebook.com',true);
-        // TODO.
+        // TODO
     }
 }
