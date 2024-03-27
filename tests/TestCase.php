@@ -1,33 +1,70 @@
 <?php
 
-namespace Tests;
+namespace kevinoo\PanoramaWhois\Tests;
 
-use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Exception;
+use Orchestra\Testbench\TestCase as BaseTestCase;
+use kevinoo\PanoramaWhois\Helpers;
+use kevinoo\PanoramaWhois\Support\Facades\PanoramaWhois;
 
 
-abstract class TestCase extends BaseTestCase
+class TestCase extends BaseTestCase
 {
-    public function createApplication()
+    protected function getEnvironmentSetUp($app): void
     {
-        $app = new \Illuminate\Foundation\Application(
-            $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__).'/src/'
-        );
-//        $app->singleton(
-//            \Illuminate\Contracts\Http\Kernel::class,
-//            \Illuminate\Foundation\Http\Kernel::class
-//        );
-        $app->singleton(
-            \Illuminate\Contracts\Console\Kernel::class,
-            \Illuminate\Foundation\Console\Kernel::class
-        );
-//        $app->singleton(
-//            \Illuminate\Contracts\Debug\ExceptionHandler::class,
-//            \Illuminate\Foundation\Exceptions\Handler::class
-//        );
+        $app['config']->set('app.debug', true);
 
-        $app->make(Kernel::class)->bootstrap();
+        $app['config']->set('panorama-whois.asdf', [
+            "chiave1" => "valore1",
+            "chiave2" => "valore2",
+        ]);
+    }
 
-        return $app;
+    /**
+     * @throws Exception
+     */
+    public function test_facebook_com(): void
+    {
+        $whois = PanoramaWhois::getWhoIS('facebook.com');
+
+        static::assertNotEmpty($whois);
+        static::assertIsArray($whois);
+        static::assertEquals('3237',$whois['registrar']['code']);
+        static::assertEquals('1997-03-29T05:00:00Z',$whois['domain']['created_at']);
+        static::assertCount(4,$whois['domain']['dns']);
+        static::assertStringContainsString('Meta',$whois['admin']['name']);
+        static::assertEquals('USA',$whois['admin']['country']);
+        static::assertStringContainsString('fb.com',$whois['technical']['email']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function test_countries(): void
+    {
+        static::assertEquals('ITA', Helpers::getCountryISO3('IT') );
+        static::assertEquals('USA', Helpers::getCountryISO3('US') );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function test_config(): void
+    {
+         $test = PanoramaWhois::defaultProviders();
+
+        print_r(
+            $test
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function test_cached_option(): void
+    {
+        $whois = PanoramaWhois::getWhoIS('facebook.com');
+        $whois_cached = PanoramaWhois::getWhoIS('facebook.com',true);
+        // TODO
     }
 }
