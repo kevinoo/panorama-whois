@@ -4,8 +4,6 @@ namespace kevinoo\PanoramaWhois;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use JetBrains\PhpStorm\ArrayShape;
-use kevinoo\PanoramaWhois\Models\Country;
-use kevinoo\PanoramaWhois\Models\IpRangesByCountries;
 
 
 class Helpers
@@ -16,7 +14,7 @@ class Helpers
     public static function buildDatabaseConnection(): void
     {
         $capsule = new DB();
-        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois'), 'panorama-whois' );
+        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois') );
         $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois-cache'), 'panorama-whois-cache' );
 
         $capsule->setAsGlobal();
@@ -75,13 +73,14 @@ class Helpers
      */
     public static function retriveCountryByAddressIP( string $ip_address ): ?string
     {
-        $country_code = IpRangesByCountries::query()
-                ->whereRaw('? BETWEEN ip_from AND ip_to', [ip2long($ip_address)])
-                ->first()
-                ?->country_code ?? null;
+        $row = DB::select("
+            SELECT country_code
+                FROM ip_ranges_by_countries
+                WHERE :ip BETWEEN ip_from AND ip_to
+        ",[':ip'=>ip2long($ip_address)])[0] ?? [];
 
-        if( !empty($country_code) ){
-            return static::getCountryISO3($country_code);
+        if( !empty($row) ){
+            return static::getCountryISO3($row->country_code);
         }
 
         return null;
@@ -97,7 +96,7 @@ class Helpers
         static $countries_ISO3 = null;
 
         if ($countries_ISO3 === null) {
-            $countries_ISO3 = Country::all()->pluck('code','iso2')->toArray();
+            $countries_ISO3 = array_column(DB::select("SELECT code, iso2 FROM countries WHERE iso2 IS NOT NULL"), 'code', 'iso2');
         }
 
         return $countries_ISO3[$iso2] ?? null;
