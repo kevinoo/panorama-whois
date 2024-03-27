@@ -3,8 +3,6 @@
 namespace kevinoo\PanoramaWhois\Tests;
 
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use kevinoo\PanoramaWhois\Models\Domain;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use kevinoo\PanoramaWhois\Helpers;
@@ -22,12 +20,10 @@ class TestCase extends BaseTestCase
         Helpers::buildDatabaseConnection();
     }
 
-    protected function tearDown(): void
+    public static function tearDownAfterClass(): void
     {
-        parent::tearDown();
-
-        /** @noinspection SqlWithoutWhere */
-        DB::connection('panorama-whois-cache')->select('DELETE FROM domains');
+        Domain::find('facebook.com')->delete();
+        parent::tearDownAfterClass();
     }
 
     /**
@@ -61,7 +57,7 @@ class TestCase extends BaseTestCase
      */
     public function test_config(): void
     {
-        static::assertEquals(true, config('app.debug') );
+        static::assertTrue( config( 'app.debug' ) );
         static::assertCount(3, PanoramaWhois::getProviders() );
     }
 
@@ -70,7 +66,10 @@ class TestCase extends BaseTestCase
      */
     public function test_domains_model(): void
     {
-        $domain = Domain::find('test.com');
+        $domain = Domain::find('facebook.com');
+
+        static::assertNotEmpty($domain);
+        static::assertNotEmpty($domain['who_is_data']);
     }
 
     /**
@@ -80,6 +79,7 @@ class TestCase extends BaseTestCase
     {
         $whois = PanoramaWhois::getWhoIS('facebook.com', false);
         $whois_cached = PanoramaWhois::getWhoIS('facebook.com',true);
-        // TODO
+
+        self::assertEquals($whois['last_update'],$whois_cached['last_update']);
     }
 }
