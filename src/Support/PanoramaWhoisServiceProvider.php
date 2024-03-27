@@ -1,6 +1,6 @@
 <?php
 
-namespace kevinoo\PanoramaWhois;
+namespace kevinoo\PanoramaWhois\Support;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -12,7 +12,7 @@ class PanoramaWhoisServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $configPath = __DIR__ . '/config';
+        $configPath = dirname(__DIR__,2) . '/config';
 
         $this->mergeConfigFrom($configPath .'/config.php','panorama-whois');
 
