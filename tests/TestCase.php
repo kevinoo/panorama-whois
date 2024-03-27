@@ -3,6 +3,9 @@
 namespace kevinoo\PanoramaWhois\Tests;
 
 use Exception;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use kevinoo\PanoramaWhois\Models\Domain;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use kevinoo\PanoramaWhois\Helpers;
 use kevinoo\PanoramaWhois\Support\Facades\PanoramaWhois;
@@ -14,6 +17,17 @@ class TestCase extends BaseTestCase
     {
         $app['config']->set('app.debug', true);
         $app['config']->set('panorama-whois', (include dirname(__DIR__) .'/config/config.php') );
+        $app['config']->set('database', config('panorama-whois.database') );
+
+        Helpers::buildDatabaseConnection();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        /** @noinspection SqlWithoutWhere */
+        DB::connection('panorama-whois-cache')->select('DELETE FROM domains');
     }
 
     /**
@@ -54,9 +68,17 @@ class TestCase extends BaseTestCase
     /**
      * @throws Exception
      */
+    public function test_domains_model(): void
+    {
+        $domain = Domain::find('test.com');
+    }
+
+    /**
+     * @throws Exception
+     */
     public function test_cached_option(): void
     {
-        $whois = PanoramaWhois::getWhoIS('facebook.com');
+        $whois = PanoramaWhois::getWhoIS('facebook.com', false);
         $whois_cached = PanoramaWhois::getWhoIS('facebook.com',true);
         // TODO
     }
