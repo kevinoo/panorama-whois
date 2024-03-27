@@ -13,11 +13,7 @@ class TestCase extends BaseTestCase
     protected function getEnvironmentSetUp($app): void
     {
         $app['config']->set('app.debug', true);
-
-        $app['config']->set('panorama-whois.asdf', [
-            "chiave1" => "valore1",
-            "chiave2" => "valore2",
-        ]);
+        $app['config']->set('panorama-whois', (include dirname(__DIR__) .'/config/config.php') );
     }
 
     /**
@@ -51,11 +47,8 @@ class TestCase extends BaseTestCase
      */
     public function test_config(): void
     {
-         $test = PanoramaWhois::defaultProviders();
-
-        print_r(
-            $test
-        );
+        static::assertEquals(true, config('app.debug') );
+        static::assertCount(3, PanoramaWhois::getProviders() );
     }
 
     /**
