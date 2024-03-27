@@ -9,6 +9,19 @@ use JetBrains\PhpStorm\ArrayShape;
 class Helpers
 {
     /**
+     * Build database connections
+     */
+    public static function buildDatabaseConnection(): void
+    {
+        $capsule = new DB();
+        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois') );
+        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois-cache'), 'panorama-whois-cache' );
+
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+    /**
      * @param string $url
      * @return array
      */
