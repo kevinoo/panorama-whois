@@ -2,7 +2,8 @@
 
 namespace kevinoo\PanoramaWhois;
 
-use Illuminate\Database\Capsule\Manager as DB;
+use kevinoo\PanoramaWhois\Models\IanaAddressBlocks;
+
 
 /**
     return [
@@ -28,9 +29,7 @@ class IPLookup
 
         $split = explode('.',$ip_address);
 
-        $whois_server = DB::connection()->select("
-            SELECT whois FROM iana_address_blocks WHERE prefix={$split[0]}
-        ")[0]?->whois;
+        $whois_server = IanaAddressBlocks::where('prefix',$split[0])->first()?->whois;
 
         $response = static::queryWhoisServer($whois_server,$ip_address);
 

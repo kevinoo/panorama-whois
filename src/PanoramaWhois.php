@@ -8,7 +8,9 @@ use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
+use kevinoo\PanoramaWhois\Models\Country;
 use kevinoo\PanoramaWhois\Models\Domain;
+use kevinoo\PanoramaWhois\Models\IanaRegistry;
 use kevinoo\PanoramaWhois\Providers\AbstractProvider;
 
 
@@ -50,11 +52,11 @@ class PanoramaWhois
 
         $domain_name_info = Helpers::getUrlInfo($domain_name);
         $website = $domain_name_info['website'];
-//        $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
-//
-//        if( $cached && !empty($who_is_data) ){
-//            return $who_is_data;
-//        }
+        $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
+
+        if( $cached && !empty($who_is_data) ){
+            return $who_is_data;
+        }
 
         $who_is_info = [];
         foreach( $this->getProviders() as $provider ){
@@ -138,9 +140,7 @@ class PanoramaWhois
             return null;
         }
 
-        return current(DB::connection()->select("
-            SELECT name FROM iana_registry WHERE id=$iana_id
-        "))->name ?? null;
+        return IanaRegistry::find($iana_id)?->name;
     }
 
     protected static function retrieveInfoFromRawWhoIs( array $who_is_info, array $map_info_keys ): array
@@ -542,9 +542,7 @@ class PanoramaWhois
         }
 
         // Search code (iso3) by the country's name
-        $result = DB::connection()->select("SELECT code FROM countries WHERE upper(name) LIKE '{$country_code}'");
-
-        return !empty($result) ? $result[0]?->code : null;
+        return Country::whereRaw("upper(name) LIKE '{$country_code}'")->first()?->code ?? null;
     }
 
     /**
