@@ -4,11 +4,13 @@ namespace kevinoo\PanoramaWhois\Support\Facades;
 
 use Illuminate\Support\Facades\Facade;
 use kevinoo\PanoramaWhois\PanoramaWhois as RealPanoramaWhois;
+use kevinoo\PanoramaWhois\Providers\AbstractProvider;
+
 
 /**
  * @see \kevinoo\PanoramaWhois\PanoramaWhois
  * @method static array getWhoIS( string $domain_name, bool $cached=true )
- * @method static void defaultProviders()
+ * @method static AbstractProvider[] getProviders()
  */
 class PanoramaWhois extends Facade
 {

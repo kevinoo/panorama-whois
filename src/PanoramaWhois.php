@@ -5,60 +5,65 @@ namespace kevinoo\PanoramaWhois;
 use Exception;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
 use kevinoo\PanoramaWhois\Providers\AbstractProvider;
-use kevinoo\PanoramaWhois\Providers\GARRServices;
-use kevinoo\PanoramaWhois\Providers\PhpWhoisLibrary;
-use kevinoo\PanoramaWhois\Providers\WhoIsCom;
 
 
 class PanoramaWhois
 {
-    public static array $PROVIDERS = [];
+    /** @var Container */
+    protected $app;
+    /** @var Repository */
+    protected $config;
+
+    public function __construct( ?Container $app, ?Repository $config )
+    {
+        $this->app = $app;
+        $this->config = $config;
+
+        $this->buildDatabaseConnection();
+    }
+
+    protected function buildDatabaseConnection(): void
+    {
+        $capsule = new DB();
+        $capsule->addConnection([
+            'driver' => 'sqlite',
+            'host' => __DIR__ .'/database/panorama-whois.sqlite',
+            'database' => __DIR__ .'/database/panorama-whois.sqlite',
+        ]);
+
+        $capsule->addConnection([
+            'driver' => env('PANORAMA_WHOIS_CACHE_DB_CONNECTION','sqlite'),
+            'host' => env('PANORAMA_WHOIS_CACHE_DB_HOST',__DIR__ .'/database/cached-whois.sqlite'),
+            'database' => env('PANORAMA_WHOIS_CACHE_DB_DATABASE',__DIR__ .'/database/cached-whois.sqlite'),
+            'username' => env('PANORAMA_WHOIS_CACHE_DB_USERNAME'),
+            'password' => env('PANORAMA_WHOIS_CACHE_DB_PASSWORD'),
+        ],'cached');
+
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
 
     /**
      * Returns the list of default providers to call
      * @return AbstractProvider[]
-    */
-    public static function defaultProviders(): array
+     */
+    public function getProviders(): array
     {
-        return [
-            WhoIsCom::class,
-            PhpWhoisLibrary::class,
-            GARRServices::class,
-        ];
+        return $this->config->get('panorama-whois.whois_providers');
     }
-
-    protected static function boot(): static
-    {
-        if( empty(static::$PROVIDERS) ){
-            static::$PROVIDERS = static::defaultProviders();
-        }
-        return new static;
-    }
-
-    public static function setProviders( array $providers ): static
-    {
-        static::$PROVIDERS = $providers;
-        return new static;
-    }
-
-    public static function addProvider( AbstractProvider $provider ): static
-    {
-        static::$PROVIDERS[] = $provider;
-        return new static;
-    }
-
     /**
      * Return the WhoIs info
-     * @param string    $domain_name
+     * @param string $domain_name
+     * @param bool   $cached
      * @return array
      * @throws Exception
      */
-    public static function getWhoIS( string $domain_name ): array
+    public function getWhoIS( string $domain_name, bool $cached=true ): array
     {
-        static::boot();
-
 //        if( is_null($cached) ){
 //            $cached = request()?->header('x-cached','true') === 'true';
 //        }
@@ -72,8 +77,7 @@ class PanoramaWhois
 //        }
 
         $who_is_info = [];
-        /** @var $provider AbstractProvider */
-        foreach( static::$PROVIDERS as $provider ){
+        foreach( $this->getProviders() as $provider ){
 
             $who_is_info = $provider::getWhoIS($domain_name_info);
 
