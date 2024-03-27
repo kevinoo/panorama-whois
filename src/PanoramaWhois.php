@@ -8,6 +8,7 @@ use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Capsule\Manager as DB;
+use kevinoo\PanoramaWhois\Models\Domain;
 use kevinoo\PanoramaWhois\Providers\AbstractProvider;
 
 
@@ -23,28 +24,7 @@ class PanoramaWhois
         $this->app = $app;
         $this->config = $config;
 
-        $this->buildDatabaseConnection();
-    }
-
-    protected function buildDatabaseConnection(): void
-    {
-        $capsule = new DB();
-        $capsule->addConnection([
-            'driver' => 'sqlite',
-            'host' => __DIR__ .'/database/panorama-whois.sqlite',
-            'database' => __DIR__ .'/database/panorama-whois.sqlite',
-        ]);
-
-        $capsule->addConnection([
-            'driver' => env('PANORAMA_WHOIS_CACHE_DB_CONNECTION','sqlite'),
-            'host' => env('PANORAMA_WHOIS_CACHE_DB_HOST',__DIR__ .'/database/cached-whois.sqlite'),
-            'database' => env('PANORAMA_WHOIS_CACHE_DB_DATABASE',__DIR__ .'/database/cached-whois.sqlite'),
-            'username' => env('PANORAMA_WHOIS_CACHE_DB_USERNAME'),
-            'password' => env('PANORAMA_WHOIS_CACHE_DB_PASSWORD'),
-        ],'cached');
-
-        $capsule->setAsGlobal();
-        $capsule->bootEloquent();
+        Helpers::buildDatabaseConnection();
     }
 
     /**
@@ -62,16 +42,16 @@ class PanoramaWhois
      * @return array
      * @throws Exception
      */
-    public function getWhoIS( string $domain_name, bool $cached=true ): array
+    public function getWhoIS( string $domain_name, ?bool $cached=null ): array
     {
-//        if( is_null($cached) ){
-//            $cached = request()?->header('x-cached','true') === 'true';
-//        }
+        if( is_null($cached) ){
+            $cached = $this->config->get('panorama-whois.cache.enable');
+        }
 
         $domain_name_info = Helpers::getUrlInfo($domain_name);
-//        $website = $domain_name_info['website'];
+        $website = $domain_name_info['website'];
 //        $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
-
+//
 //        if( $cached && !empty($who_is_data) ){
 //            return $who_is_data;
 //        }
@@ -99,11 +79,11 @@ class PanoramaWhois
             'technical' => static::handleTechnicalInfo($who_is_info,$domain_data),
         ];
 
-//        Domain::updateOrCreate([
-//            'domain' => $domain_name,
-//        ],[
-//            'who_is_data' => $who_is_data,
-//        ]);
+        Domain::updateOrCreate([
+            'domain' => $domain_name,
+        ],[
+            'who_is_data' => $who_is_data,
+        ]);
 
         return $who_is_data;
     }
