@@ -33,8 +33,8 @@ class Helpers
             $tld = explode('.',$website)[1];
         } else {
             $tld = DB::selectOne("
-            SELECT tld FROM tlds WHERE '$website' LIKE '%.'||tld ORDER BY INSTR('.'||tld,'$website')
-        ")?->tld ?? null;
+                SELECT tld FROM tlds WHERE '$website' LIKE '%.'||tld ORDER BY INSTR('.'||tld,'$website')
+            ")?->tld ?? null;
         }
 
         if( $tld === null ){
