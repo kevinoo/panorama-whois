@@ -58,7 +58,7 @@
         },
         "laravel": {
             "providers": [
-                "kevinoo\\PanoramaWhois\\PanoramaWhoisServiceProvider"
+                "kevinoo\\PanoramaWhois\\Support\\PanoramaWhoisServiceProvider"
             ]
         }
     },
