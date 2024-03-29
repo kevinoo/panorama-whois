@@ -50,10 +50,12 @@ class PanoramaWhois
 
         $domain_name_info = Helpers::getUrlInfo($domain_name);
         $website = $domain_name_info['website'];
-        $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
 
-        if( $cached && !empty($who_is_data) ){
-            return $who_is_data;
+        if( $cached ){
+            $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
+            if( !empty($who_is_data) ){
+                return $who_is_data;
+            }
         }
 
         $who_is_info = [];
@@ -79,11 +81,13 @@ class PanoramaWhois
             'technical' => static::handleTechnicalInfo($who_is_info,$domain_data),
         ];
 
-        Domain::updateOrCreate([
-            'domain' => $domain_name,
-        ],[
-            'who_is_data' => $who_is_data,
-        ]);
+        if( $cached ){
+            Domain::updateOrCreate([
+                'domain' => $domain_name,
+            ],[
+                'who_is_data' => $who_is_data,
+            ]);
+        }
 
         return $who_is_data;
     }
