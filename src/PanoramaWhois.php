@@ -25,8 +25,6 @@ class PanoramaWhois
     {
         $this->app = $app;
         $this->config = $config;
-
-        Helpers::buildDatabaseConnection();
     }
 
     /**
