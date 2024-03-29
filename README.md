@@ -13,6 +13,24 @@ composer require kevinoo/panorama-whois
 ```
 ### Laravel
 
+Add database support into `database.php`:
+```php
+<?php
+
+return [
+    // ...
+    'connections' => [
+        // ...
+        'panorama-whois' => [
+            'driver' => 'sqlite',
+            'database' => 'path to database', // ex. dirname(__DIR__) .'/vendor/kevinoo/panorama-whois/database/panorama-whois.sqlite'
+        ],
+        // ...
+    ]
+    // ...
+];
+```
+
 Publish the configuration file:
 ```bash
 php artisan vendor:publish --provider="kevinoo\PanoramaWhois\Support\PanoramaWhoisServiceProvider"

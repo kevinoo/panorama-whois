@@ -3,6 +3,7 @@
 namespace kevinoo\PanoramaWhois\Tests;
 
 use Exception;
+use Illuminate\Database\Capsule\Manager as DB;
 use kevinoo\PanoramaWhois\Models\Domain;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use kevinoo\PanoramaWhois\Helpers;
@@ -15,9 +16,35 @@ class TestCase extends BaseTestCase
     {
         $app['config']->set('app.debug', true);
         $app['config']->set('panorama-whois', (include dirname(__DIR__) .'/config/config.php') );
-        $app['config']->set('database', config('panorama-whois.database') );
+        $app['config']->set('database',[
+            'default' => 'panorama-whois',
+            'connections' => [
+                'panorama-whois' => [
+                    'driver' => 'sqlite',
+                    'host' => dirname(__DIR__) .'/database/panorama-whois.sqlite',
+                    'database' => dirname(__DIR__) .'/database/panorama-whois.sqlite',
+                ],
+                'panorama-whois-cache' => [
+                    'driver' => 'sqlite',
+                    'host' => dirname(__DIR__) .'/database/cache.sqlite',
+                    'database' => dirname(__DIR__) .'/database/cache.sqlite',
+                ],
+            ]
+        ]);
 
-        Helpers::buildDatabaseConnection();
+        static::buildDatabaseConnection();
+    }
+
+    /**
+     * Build database connections
+     */
+    public static function buildDatabaseConnection(): void
+    {
+        $capsule = new DB();
+        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois'), 'panorama-whois' );
+        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois-cache'), 'panorama-whois-cache' );
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
     }
 
     public static function tearDownAfterClass(): void
