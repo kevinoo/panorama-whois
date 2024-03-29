@@ -15,7 +15,7 @@ composer require kevinoo/panorama-whois
 
 Publish the configuration file:
 ```bash
-php artisan vendor:publish --provider="kevinoo\PanoramaWhois\PanoramaWhoisServiceProvider.php"
+php artisan vendor:publish --provider="kevinoo\PanoramaWhois\Support\PanoramaWhoisServiceProvider"
 ```
 
 Review the configuration file:
