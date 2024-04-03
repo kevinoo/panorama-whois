@@ -3,8 +3,7 @@
 [![Packagist Downloads](https://img.shields.io/packagist/dt/kevinoo/panorama-whois?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois)
 [![Packagist PHP Version](https://img.shields.io/packagist/dependency-v/kevinoo/panorama-whois/php?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois) 
 
-PanoramaWhois 
-------------
+# PanoramaWhois
 PanoramaWhois is a powerful and versatile tool for retrieving Whois data from multiple sources in a single, comprehensive lookup. This API provides users with an extensive panorama of domain or IP information, aggregated through a cascade of checks across various Whois servers.
 
 ## Features
