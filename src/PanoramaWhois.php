@@ -7,7 +7,6 @@ use DateTime;
 use DateTimeZone;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Database\Capsule\Manager as DB;
 use kevinoo\PanoramaWhois\Models\Country;
 use kevinoo\PanoramaWhois\Models\Domain;
 use kevinoo\PanoramaWhois\Models\IanaRegistry;
@@ -35,6 +34,21 @@ class PanoramaWhois
     {
         return $this->config->get('panorama-whois.whois_providers');
     }
+
+    protected function getCachedWhoIS( string $domain_name ): ?array
+    {
+        return Domain::find($domain_name)?->who_is_data;
+    }
+
+    protected function storeWhoIS( string $domain_name, array $who_is_data ): void
+    {
+        Domain::updateOrCreate([
+            'domain' => $domain_name,
+        ],[
+            'who_is_data' => $who_is_data,
+        ]);
+    }
+
     /**
      * Return the WhoIs info
      * @param string $domain_name
@@ -49,10 +63,9 @@ class PanoramaWhois
         }
 
         $domain_name_info = Helpers::getUrlInfo($domain_name);
-        $website = $domain_name_info['website'];
 
         if( $cached ){
-            $who_is_data = Domain::find($website ?? $domain_name)?->who_is_data;
+            $who_is_data = $this->getCachedWhoIS($domain_name_info['website'] ?? $domain_name);
             if( !empty($who_is_data) ){
                 return $who_is_data;
             }
@@ -82,42 +95,10 @@ class PanoramaWhois
         ];
 
         if( $cached ){
-            Domain::updateOrCreate([
-                'domain' => $domain_name,
-            ],[
-                'who_is_data' => $who_is_data,
-            ]);
+            $this->storeWhoIS($domain_name,$who_is_data);
         }
 
         return $who_is_data;
-    }
-
-    protected static function parseImageContent( $image_path ): string
-    {
-        // OCR necessary
-        return $image_path;
-
-//        $REDIS_KEY = 'ABP:WhoIS:ImagesContents';
-//
-//        if( ($content = Redis::hget($REDIS_KEY,$image_path)) !== false ){
-//            return $content;
-//        }
-//
-//        $ch = curl_init();
-//        curl_setopt_array($ch,[
-//            CURLOPT_URL => 'https://ocr-hhah37ze7a-ey.a.run.app?url='. $image_path,
-//            CURLOPT_RETURNTRANSFER => true,
-//        ]);
-//        $content = curl_exec($ch);
-//        curl_close($ch);
-//
-//        if( empty($content) ){
-//            $content = "*******[$image_path]";
-//        }
-//
-//        Redis::hset($REDIS_KEY,$image_path,$content);
-//
-//        return $content;
     }
 
     /**
@@ -185,10 +166,6 @@ class PanoramaWhois
                 'dns_security' => ['dnssec','registrar_dnssec'],
             ]
         );
-
-        if( empty($registrar_info['name']) && !empty($domain['sponsor']) ){
-            $registrar_info['name'] = $domain['sponsor'];
-        }
 
         if( !empty($registrar_info['code']) && ($registrar_info['name'] !== 'not applicable') ){
             // Lo recupero dalla tabella IANA
@@ -263,10 +240,6 @@ class PanoramaWhois
 
     protected static function handleDomainInfo( array $who_is_info ): array
     {
-//        if( !empty($domain_info['handle']) ){
-//            $domain_info['code'] = $domain_info['handle'];
-//        }
-
         $domain_info = static::retrieveInfoFromRawWhoIs(
             $who_is_info,
             [
