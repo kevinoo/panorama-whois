@@ -9,7 +9,7 @@ use kevinoo\PanoramaWhois\Providers\AbstractProvider;
 
 /**
  * @see \kevinoo\PanoramaWhois\PanoramaWhois
- * @method static array getWhoIS( string $domain_name, bool $cached=true )
+ * @method static array getWhoIS( string $domain_name, ?bool $cached=null )
  * @method static AbstractProvider[] getProviders()
  */
 class PanoramaWhois extends Facade
