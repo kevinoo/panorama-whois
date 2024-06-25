@@ -94,7 +94,7 @@ class PanoramaWhois
             'technical' => static::handleTechnicalInfo($who_is_info,$domain_data),
         ];
 
-        if( $cached ){
+        if( $this->config->get('panorama-whois.cache.enable') ){
             $this->storeWhoIS($domain_name,$who_is_data);
         }
 
