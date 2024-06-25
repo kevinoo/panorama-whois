@@ -41,8 +41,8 @@ class TestCase extends BaseTestCase
     public static function buildDatabaseConnection(): void
     {
         $capsule = new DB();
-        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois'), 'panorama-whois' );
-        $capsule->addConnection( config('panorama-whois.database.connections.panorama-whois-cache'), 'panorama-whois-cache' );
+        $capsule->addConnection( config('database.connections.panorama-whois'), 'panorama-whois' );
+        $capsule->addConnection( config('database.connections.panorama-whois-cache'), 'panorama-whois-cache' );
         $capsule->setAsGlobal();
         $capsule->bootEloquent();
     }
@@ -58,7 +58,7 @@ class TestCase extends BaseTestCase
      */
     public function test_facebook_com(): void
     {
-        $whois = PanoramaWhois::getWhoIS('facebook.com');
+        $whois = PanoramaWhois::getWhoIS('facebook.com',false);
 
         static::assertNotEmpty($whois);
         static::assertIsArray($whois);
