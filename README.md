@@ -1,5 +1,5 @@
 [![PHPUnit Test](https://img.shields.io/badge/PHPUnit%20Test-passing-green?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois)
-[![Codacy branch grade](https://img.shields.io/codacy/grade/4bab08f5469a4d0bb5c792dd1117db5d/main?style=for-the-badge)](https://app.codacy.com/gh/kevinoo/panorama-whois/dashboard)
+[![Codacy branch grade](https://img.shields.io/codacy/grade/896b8edc3bf64e46b80943dfede4bbe2/main?style=for-the-badge)](https://app.codacy.com/gh/kevinoo/panorama-whois/dashboard)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/kevinoo/panorama-whois?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois)
 [![Packagist PHP Version](https://img.shields.io/packagist/dependency-v/kevinoo/panorama-whois/php?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois) 
 
