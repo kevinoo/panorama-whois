@@ -12,11 +12,18 @@ PanoramaWhois is a powerful and versatile tool for retrieving Whois data from mu
 - **Easy Integration:** Seamless integration into your applications or services, making it convenient for developers to harness the power of PanoramaWhois.
 
 ## Installation
+
+### Dependencies:
+* [Laravel 8.0+](https://github.com/laravel/laravel)
+
+### Installation:
+
 Require the package via Composer:
 ```bash
 composer require kevinoo/panorama-whois
 ```
-### Laravel
+
+#### Laravel
 
 Add database support into `database.php`:
 ```php
@@ -25,10 +32,15 @@ Add database support into `database.php`:
 return [
     // ...
     'connections' => [
-        // ...
+        // Required
         'panorama-whois' => [
             'driver' => 'sqlite',
             'database' => 'path to database', // ex. dirname(__DIR__) .'/vendor/kevinoo/panorama-whois/database/panorama-whois.sqlite'
+        ],
+        // Optional
+        'panorama-whois-cache' => [ 
+            'driver' => 'sqlite',
+            'database' => 'path to database', // ex. dirname(__DIR__) .'/vendor/kevinoo/panorama-whois/database/cache.sqlite'
         ],
         // ...
     ]
@@ -48,36 +60,43 @@ config/panorama-whois.php
 
 ## Usage
 
-**Request Format:**
+- [PanoramaWhois](#panoramawhois)
+    - [Installation](#installation)
+        - [Dependencies](#dependencies)
+        - [Installation](#installation-1)
+            - [Laravel](#laravel)
+    - [Usage](#usage)
+        - [Request Format](#request-format)
+        - [Custom provider](#custom-provider-optional)
+        - [Enable OCR parser](#enable-ocr-parser)
+    - [Contributing](#contributing)
+    - [License](#license)
+
+### Request Format:
 ```php
 use \kevinoo\PanoramaWhois\PanoramaWhois;
 // ...
 PanoramaWhois::getWhoIS( domain_name );
-```
 
-**Example:**
-```php
-use \kevinoo\PanoramaWhois\PanoramaWhois;
-// ...
+// Example
 PanoramaWhois::getWhoIS( 'facebook.com' );
 ```
 
-**Custom provider (Optional)**
-To add a custom provider, add this line in your `AppServiceProvider::boot()` method
+### Custom provider (Optional)
+To add a custom provider(s), add into your `config/panorama-whois.php` file
 ```php
-class AppServiceProvider extends ServiceProvider
-{
-    // ...
-    public function boot(): void
-    {
-        // ...
-        PanoramaWhois::addProvider(CustomProviderClass::class)
-    }
-}
-
+// ...
+    'whois_providers' => [
+        kevinoo\PanoramaWhois\Providers\WhoIsCom::class,
+        kevinoo\PanoramaWhois\Providers\PhpWhoisLibrary::class,
+        kevinoo\PanoramaWhois\Providers\GARRServices::class,
+        
+        // CustomProviderClass::class
+    ],
+// ...
 ```
 
-**Returns:**
+### Returns:
 ```json
 {
     "last_update": "2024-03-25T08:56:12+00:00",
@@ -201,8 +220,11 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
-## Getting Started
-To get started with PanoramaWhois, [visit "Usage" section](?tab=readme-ov-file#usage) for detailed instructions on integration, usage, and customization.
+### Enable OCR parser
+PanoramaWhois use `https://ocr.space/` to parse images with email. To enable this feature, add this environment key in your `.env` file:
+```dotenv
+PANORAMA_WHOIS_OCR_APIKEY="your API key getted from https://ocr.space/OCRAPI"
+```
 
 ## Contributing
 We welcome contributions! Feel free to submit bug reports, feature requests, or pull requests to help improve PanoramaWhois.
