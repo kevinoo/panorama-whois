@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cd64932b8cfb4b7f94c912fdb46e0b18)](https://app.codacy.com/gh/kevinoo/panorama-whois?utm_source=github.com&utm_medium=referral&utm_content=kevinoo/panorama-whois&utm_campaign=Badge_Grade)
 [![PHPUnit Test](https://img.shields.io/badge/PHPUnit%20Test-passing-green?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois)
 [![Codacy branch grade](https://img.shields.io/codacy/grade/4bab08f5469a4d0bb5c792dd1117db5d/main?style=for-the-badge)](https://app.codacy.com/gh/kevinoo/panorama-whois/dashboard)
 [![Packagist Downloads](https://img.shields.io/packagist/dt/kevinoo/panorama-whois?style=for-the-badge)](https://packagist.org/packages/kevinoo/panorama-whois)
