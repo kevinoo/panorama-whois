@@ -79,21 +79,19 @@ class IPLookup
      */
     protected static function queryWhoisServer($whois_server, $domain): array
     {
-        $fp = @fsockopen($whois_server, 43, $errno, $err_str, 10);
+        $socket = @fsockopen($whois_server, 43, $errno, $err_str, 10);
 
-        if( empty($fp) ){
+        if( empty($socket) ){
             // or die('Socket Error '. $errno .' - '. $err_str);
             return [];
         }
 
-        //if($whoisserver == "whois.verisign-grs.com") $domain = "=".$domain; // whois.verisign-grs.com requires the equals sign ("=") or it returns any result containing the searched string.
-
-        fwrite($fp, $domain . "\r\n");
+        fwrite($socket, $domain . "\r\n");
         $out = "";
-        while(!feof($fp)){
-            $out .= @fgets($fp);
+        while(!feof($socket)){
+            $out .= @fgets($socket);
         }
-        fclose($fp);
+        fclose($socket);
 
         $result = [];
         if( !str_contains(strtolower($out),'error') && !str_contains(strtolower($out), 'not allocated') ) {
@@ -142,7 +140,6 @@ class IPLookup
                 } else {
                     $result[] = $row;
                 }
-
             }
         }
 
