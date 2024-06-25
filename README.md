@@ -13,10 +13,10 @@ PanoramaWhois is a powerful and versatile tool for retrieving Whois data from mu
 
 ## Installation
 
-### Dependencies:
-* [Laravel 8.0+](https://github.com/laravel/laravel)
+### Dependencies
+- [Laravel 8.0+](https://github.com/laravel/laravel)
 
-### Installation:
+### Installation
 
 Require the package via Composer:
 ```bash
@@ -72,7 +72,7 @@ config/panorama-whois.php
     - [Contributing](#contributing)
     - [License](#license)
 
-### Request Format:
+### Request Format
 ```php
 use \kevinoo\PanoramaWhois\PanoramaWhois;
 // ...
@@ -96,7 +96,7 @@ To add a custom provider(s), add into your `config/panorama-whois.php` file
 // ...
 ```
 
-### Returns:
+### Returns
 ```json
 {
     "last_update": "2024-03-25T08:56:12+00:00",
