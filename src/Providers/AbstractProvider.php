@@ -3,8 +3,8 @@
 namespace kevinoo\PanoramaWhois\Providers;
 
 use Exception;
-use DateTime;
-use DateTimeZone;
+use JsonException;
+use kevinoo\PanoramaWhois\Models\CachedOcrRequests;
 
 
 abstract class AbstractProvider
@@ -132,9 +132,12 @@ abstract class AbstractProvider
             }
 
             if( str_starts_with($value,'<img src') ){
-                preg_match('/<img src="(?<image_path>\/eimg\/[\w\/]+\/(?<image_hash>\w+)\.png)"[ \w="]+>(?<email>@[\w.-]+)/',$value,$matches);
-//                $value = static::parseImageContent($whois_domain.trim($matches['image_path'],'/')) . $matches['email'];
-                $value = '['. $whois_domain.trim($matches['image_path'],'/') .']' . $matches['email'];
+                try {
+                    preg_match('/<img src="(?<image_url>\/eimg\/[\w\/]+\/(?<image_hash>\w+)\.png)"[ \w="]+>(?<email>@[\w.-]+)/',$value,$matches);
+                    $value = static::parseImageContent($whois_domain.trim($matches['image_url'],'/')) . $matches['email'];
+                }catch( Exception $e ){
+                    $value = '['. $whois_domain.trim($matches['image_url'],'/') .']' . $matches['email'];
+                }
             }
 
             // Restore the correct section when in the WhoIS response used the "nic-hdl" header section
@@ -178,4 +181,55 @@ abstract class AbstractProvider
     }
 
 
+    protected static function parseImageContent( string $image_url ): string
+    {
+        if( empty(env('PANORAMA_WHOIS_OCR_APIKEY')) ){
+            return '';
+        }
+
+        /** @var $cached_content CachedOcrRequests */
+        $cached_content = CachedOcrRequests::find($image_url);
+        if( $cached_content !== null ){
+            return $cached_content->content;
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch,[
+            CURLOPT_URL => 'https://api.ocr.space/parse/image',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'apikey: '. env('PANORAMA_WHOIS_OCR_APIKEY')
+            ],
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => [
+                'base64Image' => 'data:image/png;base64,'. base64_encode(file_get_contents($image_url)),
+                'filetype' => 'PNG',
+            ]
+        ]);
+        $response = curl_exec($ch);
+
+        if( !empty($response) ){
+            try{
+                $response = json_decode( $response, true, 512, JSON_THROW_ON_ERROR );
+            }catch( JsonException $e ){
+                $response = [];
+            }
+        }
+        curl_close($ch);
+
+        $parsed_string = trim($response['ParsedResults'][0]['ParsedText'] ?? null);
+
+        if( empty($parsed_string) || (!empty($response) && ($response['IsErroredOnProcessing'] === true)) ){
+            $parsed_string = "[$image_url]";
+        }
+
+        try {
+            CachedOcrRequests::insert([
+                'image_url' => $image_url,
+                'content' => $parsed_string,
+            ]);
+        }catch( Exception $e ){ }
+
+        return $parsed_string;
+    }
 }
