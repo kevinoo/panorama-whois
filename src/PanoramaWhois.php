@@ -66,7 +66,10 @@ class PanoramaWhois
 
         if( $cached ){
             $who_is_data = $this->getCachedWhoIS($domain_name_info['website'] ?? $domain_name);
-            if( !empty($who_is_data) ){
+            $ttl = $this->config->get('panorama-whois.cache.ttl');
+
+            $is_valid_cache = now()->diffInUTCSeconds($who_is_data['last_update'],true) < $ttl;
+            if( !empty($who_is_data) && $is_valid_cache ){
                 return $who_is_data;
             }
         }
