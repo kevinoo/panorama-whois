@@ -16,7 +16,7 @@ PanoramaWhois is a powerful and versatile tool for retrieving Whois data from mu
 ### Dependencies
 - [Laravel 8.0+](https://github.com/laravel/laravel)
 
-### Installation
+### Installation via Composer
 
 Require the package via Composer:
 ```bash
@@ -63,7 +63,7 @@ config/panorama-whois.php
 - [PanoramaWhois](#panoramawhois)
     - [Installation](#installation)
         - [Dependencies](#dependencies)
-        - [Installation](#installation-1)
+        - [Installation via Composer](#installation-via-composer)
             - [Laravel](#laravel)
     - [Usage](#usage)
         - [Request Format](#request-format)
